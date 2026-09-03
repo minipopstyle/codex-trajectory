@@ -1,0 +1,12 @@
+{
+  "name": "codex-trajectory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local, read-only live trajectory maze for Codex Desktop",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node tests/self-check.mjs && node tests/v2-self-check.mjs && node tests/v2-page-self-check.mjs",
+    "check": "node --check src/adapter.mjs && node --check src/v2-data.mjs && node --check src/v2-runtime.mjs && node --check src/cdp.mjs && node --check src/renderer.mjs && node --check src/host.mjs && node --check scripts/live-check.mjs && npm test"
+  }
+}
