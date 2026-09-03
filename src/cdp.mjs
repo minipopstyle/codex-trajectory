@@ -23,7 +23,7 @@ export async function listCodexTargets(port = 9341) {
   if (!response.ok) throw new Error(`CDP /json/list HTTP ${response.status}`)
   const targets = await response.json()
   if (!Array.isArray(targets)) throw new Error('CDP target list 不是数组')
-  return targets.filter((target) => isCodexTarget(target, port))
+  return targets.filter((target) => isCodexTarget(target, port) && !target.url.includes('avatar-overlay'))
 }
 
 export async function listTrajectoryV2Targets(port = 9341, parentIds = new Set()) {

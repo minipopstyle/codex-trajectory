@@ -26,7 +26,6 @@ function install(v2Html) {
   };
   const close = () => { open = false; drawer?.setAttribute('aria-hidden', 'true'); trigger?.setAttribute('aria-expanded', 'false'); trigger?.focus(); };
   const openDrawer = () => {
-    if (!taskId()) return;
     open = true;
     drawer?.setAttribute('aria-hidden', 'false');
     trigger?.setAttribute('aria-expanded', 'true');
@@ -43,10 +42,6 @@ function install(v2Html) {
     setStatus(); send();
   };
   const reconcile = () => {
-    const valid = Boolean(taskId());
-    if (trigger) trigger.disabled = !valid;
-    if (root) root.hidden = !valid;
-    if (!valid && open) close();
     setStatus();
   };
   const build = () => {
