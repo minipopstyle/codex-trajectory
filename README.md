@@ -1,5 +1,7 @@
 # Codex Trajectory
 
+![Codex Trajectory](assets/codex-trajectory-cover.png)
+
 Codex Desktop 的本机只读轨迹抽屉。它从本机 Codex 会话日志构建任务执行轨迹，并通过仅限本机的 CDP 页面注入显示。不会修改 `ChatGPT.app`、app.asar、签名、模型配置或 API Key。
 
 ## 功能
