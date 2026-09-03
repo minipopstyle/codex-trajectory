@@ -5,16 +5,16 @@ import { CdpSession, listCodexTargets } from '../src/cdp.mjs'
 const target = (await listCodexTargets(9341)).find((item) => item.type === 'page' && item.url.startsWith('app://') && !item.url.includes('avatar-overlay'))
 if (!target) throw new Error('未找到 Codex 主 renderer')
 const cdp = new CdpSession(target, 9341)
-const action = ['--menu', '--v2', '--trajectory', '--legacy', '--compare'].includes(process.argv[2]) ? process.argv[2] : null
+const action = ['--open', '--v2'].includes(process.argv[2]) ? process.argv[2] : null
 const screenshotPath = action ? process.argv[3] : process.argv[2]
 await cdp.open()
 try {
   const before = await cdp.evaluate(`({ href: location.href, selectedSession: document.querySelector('[data-app-action-sidebar-thread-selected="true"]')?.getAttribute('data-app-action-sidebar-thread-id') ?? null, api: !!window.__CODEX_TRAJECTORY__, root: !!document.getElementById('codex-trajectory-root'), menuItemCount: document.querySelectorAll('.codex-trajectory-menu-item').length, drawerOpen: document.getElementById('codex-trajectory-drawer')?.getAttribute('aria-hidden') === 'false' })`)
   if (action) {
-    await cdp.evaluate(`(() => { document.querySelector('.codex-trajectory-menu-trigger')?.click(); const items = document.querySelectorAll('.codex-trajectory-menu-item'); ${action === '--v2' ? 'items[0]?.click();' : action === '--trajectory' || action === '--legacy' ? 'items[1]?.click();' : action === '--compare' ? 'items[2]?.click();' : ''} return true; })()`)
+    await cdp.evaluate(`document.querySelector('.codex-trajectory-trigger')?.click(); true`)
     await new Promise((resolve) => setTimeout(resolve, 800))
   }
-  const after = await cdp.evaluate(`(() => { const iframe = document.querySelector('#codex-trajectory-drawer iframe:not([hidden])'); const drawer = document.getElementById('codex-trajectory-drawer'); const item = document.querySelector('.codex-trajectory-menu-item'); const menu = document.querySelector('.codex-trajectory-menu'); const r = menu?.getBoundingClientRect(); return { href: location.href, root: !!document.getElementById('codex-trajectory-root'), menuItemCount: document.querySelectorAll('.codex-trajectory-menu-item').length, menuItemWeight: item ? getComputedStyle(item).fontWeight : null, menuRect: r ? { x: r.x, y: r.y, width: r.width, height: r.height } : null, drawerOpen: drawer?.getAttribute('aria-hidden') === 'false', drawerShadow: drawer ? getComputedStyle(drawer).boxShadow : null, drawerVisibility: drawer ? getComputedStyle(drawer).visibility : null, drawerTitle: document.querySelector('.codex-trajectory-title')?.textContent ?? null, iframe: !!iframe, frameHash: iframe ? new URL(iframe.src).hash : null, status: document.querySelector('.codex-trajectory-status')?.textContent ?? null }; })()`)
+  const after = await cdp.evaluate(`(() => { const iframe = document.querySelector('#codex-trajectory-drawer iframe'); const drawer = document.getElementById('codex-trajectory-drawer'); const trigger = document.querySelector('.codex-trajectory-trigger'); return { href: location.href, root: !!document.getElementById('codex-trajectory-root'), menuItemCount: document.querySelectorAll('.codex-trajectory-menu-item').length, trigger: !!trigger, drawerOpen: drawer?.getAttribute('aria-hidden') === 'false', drawerShadow: drawer ? getComputedStyle(drawer).boxShadow : null, drawerVisibility: drawer ? getComputedStyle(drawer).visibility : null, drawerTitle: drawer?.querySelector('header strong')?.textContent ?? null, iframe: !!iframe, frameHash: iframe ? new URL(iframe.src).hash : null, status: document.querySelector('.codex-trajectory-status')?.textContent ?? null }; })()`)
   const targets = await (await fetch('http://127.0.0.1:9341/json/list')).json()
   const iframeTarget = targets.find((item) => item.type === 'iframe' && item.parentId === target.id && item.url.startsWith('blob:') && (!after.frameHash || item.url.endsWith(after.frameHash)))
   let iframeState = null

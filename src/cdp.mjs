@@ -26,7 +26,7 @@ export async function listCodexTargets(port = 9341) {
   return targets.filter((target) => isCodexTarget(target, port))
 }
 
-export async function listMazeTargets(port = 9341, parentIds = new Set()) {
+export async function listTrajectoryV2Targets(port = 9341, parentIds = new Set()) {
   const response = await fetch(`http://127.0.0.1:${port}/json/list`, { redirect: 'error' })
   if (!response.ok) throw new Error(`CDP /json/list HTTP ${response.status}`)
   const targets = await response.json()
@@ -35,7 +35,7 @@ export async function listMazeTargets(port = 9341, parentIds = new Set()) {
     && parentIds.has(target.parentId)
     && typeof target.url === 'string'
     && target.url.startsWith('blob:app://-/')
-    && /#(?:codex-(?:trajectory-maze|trace-compare)|trajectory-v2)$/.test(target.url)
+    && target.url.endsWith('#trajectory-v2')
     && typeof target.id === 'string' && ID_RE.test(target.id)
     && target.webSocketDebuggerUrl
     && (() => { try { websocketUrl(target, port); return true } catch { return false } })())

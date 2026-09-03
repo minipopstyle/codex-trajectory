@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local, read-only live trajectory maze for Codex Desktop",
+  "description": "Local, read-only live trajectory analysis for Codex Desktop",
   "engines": { "node": ">=20" },
   "scripts": {
     "test": "node tests/self-check.mjs && node tests/v2-self-check.mjs && node tests/v2-page-self-check.mjs",

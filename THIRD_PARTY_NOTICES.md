@@ -4,9 +4,7 @@
 
 来源：https://github.com/lamost423/dsh-trace-compare
 
-本包固定并内嵌 `maze-upload.html`、`verdict.js`、`verdict.d.ts`。上游仓库当前固定提交：`9512521`。文件保留其 MIT License 和 NOTICE；Maze UI、判定逻辑、空闲折叠、缩放、过滤、详情和导出均按上游实现使用。
-
-本地仅对时间线节点和支路标签加入 22 字符截断（完整文本仍在详情面板展示），并恢复 hover 卡片在时间线画布内的边界定位。
+本包固定并内嵌 `verdict.js`、`verdict.d.ts`。上游仓库当前固定提交：`9512521`。文件保留其 MIT License 和 NOTICE；仅使用其工具调用判定与重试簇标记逻辑，不包含 Maze UI 或 Trace 对比功能。
 
 ## Codex Dream Skin Studio CDP 片段
 
