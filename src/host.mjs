@@ -44,14 +44,22 @@ function v2SnapshotFor(controller, id, status = 'live', diagnostics) {
 
 async function enrichSubagents(controller) {
   const childSignal = controller.parser.events.filter(event => event.payload?.type === 'sub_agent_activity').map(event => event.payload.agent_thread_id).filter(Boolean).sort().join(',');
-  if (controller.childSignal === childSignal && controller.children) return;
-  controller.childSignal = childSignal;
-  controller.children = await findSessionDescendants(sessionsRoot, controller.sessionId);
-  controller.childMetrics = await Promise.all(controller.children.map(async child => ({
-    id: child.id,
-    kind: child.source?.subagent?.thread_spawn ? 'thread_spawn' : 'system',
-    metrics: await readSessionMetrics(child.file, child.id),
-  }))).catch(() => []);
+  if (controller.childSignal !== childSignal || !controller.children) {
+    controller.childSignal = childSignal;
+    controller.children = await findSessionDescendants(sessionsRoot, controller.sessionId);
+  }
+  const previous = new Map((controller.childMetrics || []).map(child => [child.id, child]));
+  controller.childMetrics = await Promise.all(controller.children.map(async child => {
+    const stat = await fs.stat(child.file);
+    const signature = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+    const cached = previous.get(child.id);
+    return {
+      id: child.id,
+      kind: child.source?.subagent?.thread_spawn ? 'thread_spawn' : 'system',
+      signature,
+      metrics: cached?.signature === signature ? cached.metrics : await readSessionMetrics(child.file, child.id),
+    };
+  })).catch(() => []);
 }
 
 async function evaluate(controller, expression) { try { return await controller.cdp.evaluate(expression); } catch { return null; } }
@@ -147,4 +155,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   console.log(`[trajectory] watching ${sessionsRoot}; CDP 127.0.0.1:${PORT}`); poll();
 }
 
-export { sessionIdFromHref };
+export { sessionIdFromHref, enrichSubagents };

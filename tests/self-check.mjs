@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url'
 import { TrajectoryParser, buildMaze, findSessionFile, findSessionDescendants, mergeSubagentMetrics } from '../src/adapter.mjs'
 import { createSessionAdapter } from '../src/session-data.mjs'
 import { isCodexTarget } from '../src/cdp.mjs'
-import { sessionIdFromHref } from '../src/host.mjs'
 import { buildRendererSource } from '../src/renderer.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -95,6 +94,17 @@ await fs.writeFile(child, fixture.replace(id, '22222222-2222-4222-8222-222222222
 const descendants = await findSessionDescendants(temp, id)
 assert.equal(descendants.length, 1)
 assert.equal(descendants[0].id, '22222222-2222-4222-8222-222222222222')
+process.env.CODEX_SESSIONS_ROOT = temp
+const { sessionIdFromHref, enrichSubagents } = await import('../src/host.mjs')
+const controller = { sessionId: id, parser: { events: [{ payload: { type: 'sub_agent_activity', agent_thread_id: descendants[0].id } }] }, childMetrics: [] }
+await enrichSubagents(controller)
+assert.equal(controller.childMetrics[0].metrics.tokens.total, 42)
+const unchangedMetrics = controller.childMetrics[0].metrics
+await enrichSubagents(controller)
+assert.equal(controller.childMetrics[0].metrics, unchangedMetrics)
+await fs.appendFile(child, JSON.stringify({ timestamp: '2026-08-20T10:00:00.230Z', type: 'event_msg', payload: { type: 'token_count', info: { total_token_usage: { total_tokens: 84 } } } }) + '\n')
+await enrichSubagents(controller)
+assert.equal(controller.childMetrics[0].metrics.tokens.total, 84)
 const merged = mergeSubagentMetrics(metric, [{ kind: 'thread_spawn', metrics: metric }], 2)
 assert.equal(merged.subagents.explicit, 1)
 assert.equal(merged.coverage.subagentRatio, .5)
